@@ -92,8 +92,8 @@ export function updateGame(gameData: GameData, dt: number): GameData {
   }
 
   let data = { ...gameData }
-  let player = { ...data.player, cells: [...data.player.cells] }
-  let aiPlayers = data.aiPlayers.map(ai => ({ ...ai, cells: [...ai.cells] }))
+  let player: Player = { ...data.player!, cells: [...data.player!.cells] }
+  let aiPlayers: Player[] = data.aiPlayers.map(ai => ({ ...ai, cells: [...ai.cells] }))
   let food = [...data.food]
   let viruses = [...data.viruses]
   let ejectedMass = [...data.ejectedMass]
@@ -298,7 +298,7 @@ export function updateGame(gameData: GameData, dt: number): GameData {
     return {
       ...data,
       gameState: 'gameover',
-      player: { ...player, cells: [] },
+      player: { ...player, cells: [] } as Player,
       aiPlayers,
       food,
       viruses,
@@ -325,7 +325,7 @@ export function updateGame(gameData: GameData, dt: number): GameData {
   aiPlayers = aiPlayers.map(ai => ({
     ...ai,
     score: getPlayerScore(ai),
-  }))
+  } as Player))
 
   // Update leaderboard
   const leaderboard = calculateLeaderboard(player, aiPlayers)

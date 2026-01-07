@@ -15,7 +15,7 @@ export function useGameInput({
   isPlaying,
   canvasRef,
 }: UseGameInputProps) {
-  const ejectIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const ejectIntervalRef = useRef<number | null>(null)
 
   // Mouse move handler
   const handleMouseMove = useCallback(
@@ -65,7 +65,7 @@ export function useGameInput({
         
         // Start continuous ejecting if held
         if (!ejectIntervalRef.current) {
-          ejectIntervalRef.current = setInterval(() => {
+          ejectIntervalRef.current = window.setInterval(() => {
             onEject()
           }, 50)
         }
