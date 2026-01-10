@@ -12,6 +12,15 @@ import {
   FOOD_RADIUS,
   VIRUS_RADIUS,
 } from './constants'
+
+// Flutter Bridge type definition
+declare global {
+  interface Window {
+    FlutterBridge?: {
+      postMessage: (message: string) => void
+    }
+  }
+}
 import type { GameData, Camera, Player, Cell, LeaderboardEntry, Food, EjectedMass, Virus } from './types'
 import {
   createCell,
@@ -293,6 +302,15 @@ export function updateGame(gameData: GameData, dt: number): GameData {
     if (finalScore > highScore) {
       highScore = finalScore
       localStorage.setItem('agarHighScore', highScore.toString())
+    }
+
+    // Notify Flutter app about game end
+    if (window.FlutterBridge) {
+      window.FlutterBridge.postMessage(JSON.stringify({
+        event: 'gameEnd',
+        score: finalScore,
+        highScore: highScore
+      }))
     }
 
     return {
