@@ -115,8 +115,11 @@ export default function GameCanvas() {
     >
       <canvas
         ref={canvasRef}
-        className="w-full h-full block"
-        style={{ cursor: gameData?.gameState === 'playing' ? 'none' : 'default' }}
+        className="w-full h-full block touch-none"
+        style={{
+          cursor: gameData?.gameState === 'playing' ? 'none' : 'default',
+          touchAction: 'none',
+        }}
       />
 
       {gameData && (
@@ -125,6 +128,8 @@ export default function GameCanvas() {
             <GameUI
               score={gameData.score}
               leaderboard={gameData.leaderboard}
+              onSplit={handleSplit}
+              onEject={handleEject}
             />
           )}
 

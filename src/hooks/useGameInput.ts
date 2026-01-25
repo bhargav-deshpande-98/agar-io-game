@@ -37,8 +37,11 @@ export function useGameInput({
     (e: TouchEvent) => {
       if (!isPlaying) return
       e.preventDefault()
+      e.stopPropagation()
 
       const touch = e.touches[0]
+      if (!touch) return
+
       const rect = canvasRef.current?.getBoundingClientRect()
       if (!rect) return
 
@@ -86,21 +89,17 @@ export function useGameInput({
     []
   )
 
-  // Touch split (double tap)
-  const lastTapRef = useRef<number>(0)
+  // Touch start handler - track position immediately
   const handleTouchStart = useCallback(
     (e: TouchEvent) => {
       if (!isPlaying) return
-
-      const now = Date.now()
-      if (now - lastTapRef.current < 300) {
-        // Double tap - split
-        onSplit()
-      }
-      lastTapRef.current = now
+      e.preventDefault()
+      e.stopPropagation()
 
       // Initial touch position
       const touch = e.touches[0]
+      if (!touch) return
+
       const rect = canvasRef.current?.getBoundingClientRect()
       if (!rect) return
 
@@ -108,7 +107,16 @@ export function useGameInput({
       const y = touch.clientY - rect.top
       onMouseMove(x, y)
     },
-    [isPlaying, canvasRef, onMouseMove, onSplit]
+    [isPlaying, canvasRef, onMouseMove]
+  )
+
+  // Touch end handler
+  const handleTouchEnd = useCallback(
+    (e: TouchEvent) => {
+      if (!isPlaying) return
+      e.preventDefault()
+    },
+    [isPlaying]
   )
 
   // Set up event listeners
@@ -122,6 +130,7 @@ export function useGameInput({
       canvas.addEventListener('mousemove', handleMouseMove)
       canvas.addEventListener('touchstart', handleTouchStart, { passive: false })
       canvas.addEventListener('touchmove', handleTouchMove, { passive: false })
+      canvas.addEventListener('touchend', handleTouchEnd, { passive: false })
     }
 
     return () => {
@@ -132,6 +141,7 @@ export function useGameInput({
         canvas.removeEventListener('mousemove', handleMouseMove)
         canvas.removeEventListener('touchstart', handleTouchStart)
         canvas.removeEventListener('touchmove', handleTouchMove)
+        canvas.removeEventListener('touchend', handleTouchEnd)
       }
 
       if (ejectIntervalRef.current) {
@@ -145,5 +155,6 @@ export function useGameInput({
     handleMouseMove,
     handleTouchStart,
     handleTouchMove,
+    handleTouchEnd,
   ])
 }

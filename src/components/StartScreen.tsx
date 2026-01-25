@@ -6,6 +6,7 @@ interface StartScreenProps {
 
 export default function StartScreen({ onStart }: StartScreenProps) {
   const [name, setName] = useState('')
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,15 +55,21 @@ export default function StartScreen({ onStart }: StartScreenProps) {
 
       {/* Instructions */}
       <div className="text-gray-400 text-center text-sm max-w-sm mt-4">
-        <p className="mb-2">🖱️ <strong>Move mouse</strong> to control direction</p>
-        <p className="mb-2">⎵ <strong>Space</strong> to split (attack/escape)</p>
-        <p className="mb-2">🔤 <strong>W</strong> to eject mass (feed/bait)</p>
-        <p>🦠 <strong>Avoid viruses</strong> when big!</p>
-      </div>
-
-      {/* Mobile hint */}
-      <div className="absolute bottom-6 text-gray-500 text-xs text-center">
-        <p>On mobile: Touch to move, double-tap to split</p>
+        {isTouchDevice ? (
+          <>
+            <p className="mb-2">👆 <strong>Touch & drag</strong> to control direction</p>
+            <p className="mb-2">🔵 <strong>SPLIT button</strong> to split (attack/escape)</p>
+            <p className="mb-2">🟢 <strong>EJECT button</strong> to eject mass (feed/bait)</p>
+            <p>🦠 <strong>Avoid viruses</strong> when big!</p>
+          </>
+        ) : (
+          <>
+            <p className="mb-2">🖱️ <strong>Move mouse</strong> to control direction</p>
+            <p className="mb-2">⎵ <strong>Space</strong> to split (attack/escape)</p>
+            <p className="mb-2">🔤 <strong>W</strong> to eject mass (feed/bait)</p>
+            <p>🦠 <strong>Avoid viruses</strong> when big!</p>
+          </>
+        )}
       </div>
     </div>
   )
