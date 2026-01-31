@@ -13,6 +13,7 @@ import {
 import StartScreen from './StartScreen'
 import GameOverScreen from './GameOverScreen'
 import GameUI from './GameUI'
+import { initAudio, playEatSound, playEatPlayerSound, playSplitSound, playEjectSound, playVirusSound, playDeathSound } from '@/lib/sounds'
 
 export default function GameCanvas() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -33,6 +34,7 @@ export default function GameCanvas() {
     const params = new URLSearchParams(window.location.search)
     const nickname = params.get('nickname')
     if (nickname) {
+      initAudio()
       const newGame = startGame(initialData, nickname)
       setGameData(newGame)
       gameDataRef.current = newGame
@@ -47,6 +49,7 @@ export default function GameCanvas() {
   // Start game handler
   const handleStart = useCallback((name: string) => {
     if (!gameDataRef.current) return
+    initAudio()
     const newGame = startGame(gameDataRef.current, name)
     setGameData(newGame)
     gameDataRef.current = newGame
@@ -66,7 +69,11 @@ export default function GameCanvas() {
   // Split handler
   const handleSplit = useCallback(() => {
     if (!gameDataRef.current) return
+    const prev = gameDataRef.current
     const updated = playerSplit(gameDataRef.current)
+    if (updated.player && prev.player && updated.player.cells.length > prev.player.cells.length) {
+      playSplitSound()
+    }
     setGameData(updated)
     gameDataRef.current = updated
   }, [])
@@ -74,7 +81,11 @@ export default function GameCanvas() {
   // Eject handler
   const handleEject = useCallback(() => {
     if (!gameDataRef.current) return
+    const prev = gameDataRef.current
     const updated = playerEject(gameDataRef.current)
+    if (updated.ejectedMass.length > prev.ejectedMass.length) {
+      playEjectSound()
+    }
     setGameData(updated)
     gameDataRef.current = updated
   }, [])
@@ -93,9 +104,35 @@ export default function GameCanvas() {
     (dt: number) => {
       if (!gameDataRef.current || !canvasRef.current) return
 
-      const updated = updateGame(gameDataRef.current, dt)
+      const prev = gameDataRef.current
+      const updated = updateGame(prev, dt)
 
-      if (updated !== gameDataRef.current) {
+      if (updated !== prev) {
+        // Detect game events by comparing state
+        if (prev.player && updated.player && updated.player.cells.length > 0) {
+          // Player score increased means player ate something
+          if (updated.score > prev.score) {
+            // Check if player ate another player's cell (AI cells decreased)
+            const prevAICells = prev.aiPlayers.reduce((sum, ai) => sum + ai.cells.length, 0)
+            const newAICells = updated.aiPlayers.reduce((sum, ai) => sum + ai.cells.length, 0)
+            if (newAICells < prevAICells) {
+              playEatPlayerSound()
+            } else {
+              playEatSound()
+            }
+          }
+
+          // Virus hit (player cell count suddenly jumped up beyond a split)
+          if (updated.player.cells.length > prev.player.cells.length + 1) {
+            playVirusSound()
+          }
+        }
+
+        // Player died
+        if (prev.gameState === 'playing' && updated.gameState === 'gameover') {
+          playDeathSound()
+        }
+
         setGameData(updated)
         gameDataRef.current = updated
       }
@@ -113,6 +150,7 @@ export default function GameCanvas() {
   // Restart handler
   const handleRestart = useCallback(() => {
     if (!gameDataRef.current) return
+    initAudio()
     const newGame = startGame(initializeGame(), playerName)
     setGameData(newGame)
     gameDataRef.current = newGame
