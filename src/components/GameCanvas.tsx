@@ -28,6 +28,16 @@ export default function GameCanvas() {
     const initialData = initializeGame()
     setGameData(initialData)
     gameDataRef.current = initialData
+
+    // Auto-start if nickname is passed via URL params (from Playbite app)
+    const params = new URLSearchParams(window.location.search)
+    const nickname = params.get('nickname')
+    if (nickname) {
+      const newGame = startGame(initialData, nickname)
+      setGameData(newGame)
+      gameDataRef.current = newGame
+      setPlayerName(nickname)
+    }
   }, [])
 
   useEffect(() => {
